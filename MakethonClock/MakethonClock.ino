@@ -26,23 +26,25 @@ long stopTime;
 String currentDisplayContent[2];
 String newDisplayContent[2];
 
-void (*getDisplayContents[DISPLAY_COUNT])() {
-  displayTemp,
-  displayTime,
-  displayCustomMsg
-};
+void (*getDisplayContents[DISPLAY_COUNT])(){
+    displayTemp,
+    displayTime,
+    displayCustomMsg};
 
-bool connectToWifi() {
+bool connectToWifi()
+{
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 5; i++)
+  {
     delay(1000);
   }
 
   return WiFi.status() == WL_CONNECTED;
 }
 
-void setTime() {
+void setTime()
+{
   timeClient.begin();
   timeClient.update();
 
@@ -50,10 +52,12 @@ void setTime() {
   rtcClock.adjust(DateTime(epochTime));
 }
 
-void updateDisplay() {
+void updateDisplay()
+{
   (*getDisplayContents[currentDisplay])();
 
-  if (!arrayEqual(currentDisplayContent, newDisplayContent)) {
+  if (!arrayEqual(currentDisplayContent, newDisplayContent))
+  {
     copyArray(currentDisplayContent, newDisplayContent);
     lcd.clear();
 
@@ -65,25 +69,32 @@ void updateDisplay() {
   }
 }
 
-bool arrayEqual(String a[], String b[]) {
-  for (int i = 0; i < 2; i++) {
-    if (a[i] != b[i]) {
+bool arrayEqual(String a[], String b[])
+{
+  for (int i = 0; i < 2; i++)
+  {
+    if (a[i] != b[i])
+    {
       return false;
     }
   }
   return true;
 }
 
-void copyArray(String a[], String b[]) {
-  for (int i = 0; i < 2; i++) {
+void copyArray(String a[], String b[])
+{
+  for (int i = 0; i < 2; i++)
+  {
     a[i] = b[i];
   }
 }
 
-void displayTemp() {
+void displayTemp()
+{
   float temp = rtcClock.getTemperature();
 
-  if (isnan(temp)) {
+  if (isnan(temp))
+  {
     newDisplayContent[0] = "Error, check";
     newDisplayContent[1] = "temp sensor";
 
@@ -94,28 +105,28 @@ void displayTemp() {
   newDisplayContent[1] = "";
 }
 
-void displayTime() {
+void displayTime()
+{
   DateTime datetime = rtcClock.now();
 
   newDisplayContent[0] = "Date & Time";
   newDisplayContent[1] =
-    (String)datetime.year()
-    + "/" + (String)datetime.month()
-    + "/" + (String)datetime.day()
-    + " " + (String)datetime.hour()
-    + ":" + (String)datetime.minute();
+      (String)datetime.year() + "/" + (String)datetime.month() + "/" + (String)datetime.day() + " " + (String)datetime.hour() + ":" + (String)datetime.minute();
 }
 
-void displayCustomMsg() {
+void displayCustomMsg()
+{
   newDisplayContent[0] = "Hello World";
   newDisplayContent[1] = "This is fun";
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(SPEED);
   rtcClock.begin();
 
-  if (connectToWifi()) {
+  if (connectToWifi())
+  {
     setTime();
   }
 
@@ -126,25 +137,40 @@ void setup() {
   buttonState = digitalRead(buttonPin);
 }
 
-void loop() {
+void updateOnPress()
+{
   previousButtonState = buttonState;
   buttonState = digitalRead(buttonPin);
 
-  if (previousButtonState == HIGH && buttonState == LOW) {
-    if (currentDisplay < DISPLAY_COUNT - 1) {
+  if (previousButtonState == HIGH && buttonState == LOW)
+  {
+    if (currentDisplay < DISPLAY_COUNT - 1)
+    {
       currentDisplay++;
-    } else {
+    }
+    else
+    {
       currentDisplay = 0;
     }
 
     updateDisplay();
   }
+}
 
+void updateAtInterval()
+{
   stopTime = millis();
 
-  if (stopTime - startTime > DURATION_MS) {
+  if (stopTime - startTime > DURATION_MS)
+  {
     updateDisplay();
     stopTime = startTime;
     startTime = millis();
   }
+}
+
+void loop()
+{
+  updateOnPress();
+  updateAtInterval();
 }
